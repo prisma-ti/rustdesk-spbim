@@ -610,8 +610,8 @@ class _DesktopHomePageState extends State<DesktopHomePage>
                 begin: Alignment.centerLeft,
                 end: Alignment.centerRight,
                 colors: [
-                  Color.fromARGB(255, 226, 66, 188),
-                  Color.fromARGB(255, 244, 114, 124),
+                  Color(0xFFFF5A2E),
+                  Color(0xFF7B2FF7),
                 ],
               )),
               padding: EdgeInsets.all(20),
