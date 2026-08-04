@@ -12,6 +12,7 @@ import 'package:flutter_hbb/consts.dart';
 import 'package:flutter_hbb/desktop/pages/connection_page.dart';
 import 'package:flutter_hbb/desktop/pages/desktop_setting_page.dart';
 import 'package:flutter_hbb/desktop/pages/desktop_tab_page.dart';
+import 'package:flutter_hbb/desktop/pages/spbim_shell.dart';
 import 'package:flutter_hbb/desktop/widgets/update_progress.dart';
 import 'package:flutter_hbb/models/platform_model.dart';
 import 'package:flutter_hbb/models/server_model.dart';
@@ -60,15 +61,31 @@ class _DesktopHomePageState extends State<DesktopHomePage>
   Widget build(BuildContext context) {
     super.build(context);
     final isIncomingOnly = bind.isIncomingOnly();
+    // Modo "somente recebendo conexão" (ex.: appliance sem atendente) não tem o conceito de
+    // "Conectar" — mantém o layout original de coluna única, sem a barra lateral SPBIM.
+    if (isIncomingOnly) {
+      return _buildBlock(child: buildLeftPane(context));
+    }
     return _buildBlock(
-        child: Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      child: SpbimShell(systemNotices: buildSystemNotices(context)),
+    );
+  }
+
+  /// Avisos do sistema (senha preestabelecida, instalação pendente, permissões, atualização
+  /// disponível) que antes ficavam espalhados dentro da coluna esquerda. Continuam existindo,
+  /// só que como uma faixa fina no topo do shell novo em vez de ocuparem uma coluna inteira.
+  Widget buildSystemNotices(BuildContext context) {
+    return Column(
       children: [
-        buildLeftPane(context),
-        if (!isIncomingOnly) const VerticalDivider(width: 1),
-        if (!isIncomingOnly) Expanded(child: buildRightPane(context)),
+        if (!bind.isOutgoingOnly()) buildPresetPasswordWarning(),
+        FutureBuilder<Widget>(
+          future:
+              Future.value(Obx(() => buildHelpCards(stateGlobal.updateUrl.value))),
+          builder: (_, data) => data.hasData ? data.data! : const Offstage(),
+        ),
+        buildPluginEntry(),
       ],
-    ));
+    );
   }
 
   Widget _buildBlock({required Widget child}) {
